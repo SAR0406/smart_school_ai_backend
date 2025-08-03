@@ -1,40 +1,43 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from datetime import datetime, time
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 import json
 import os
+import pytz
 
 from ai import router as ai_router  # AI features
 
+# --- App Setup ---
 app = FastAPI(
     title="📚 Smart School AI Assistant",
     description="A backend to manage school timetables and AI support for students.",
     version="2.0.0"
 )
 
-# --- Enable CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for frontend domain in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- Include AI router ---
 app.include_router(ai_router, prefix="/ai", tags=["AI Assistant"])
 
-# --- Load timetable.json ---
+# --- Constants ---
+IST = pytz.timezone("Asia/Kolkata")
 TIMETABLE_FILE = "timetable.json"
+
+# --- Load Timetable ---
 if not os.path.exists(TIMETABLE_FILE):
     raise FileNotFoundError("Missing timetable.json")
 
 with open(TIMETABLE_FILE, "r") as f:
     timetable: Dict[str, Any] = json.load(f)
 
-# --- Helper models ---
+# --- Models ---
 class PeriodInfo(BaseModel):
     subject: str
     start_time: str
@@ -55,28 +58,35 @@ class CurrentPeriodResponse(BaseModel):
 class ClassList(BaseModel):
     classes: List[str]
 
-# --- Helper functions ---
+# --- Helper Functions ---
+def get_now_ist() -> datetime:
+    return datetime.now(IST)
+
 def get_today() -> str:
-    return datetime.now().strftime("%A")
+    return get_now_ist().strftime("%A")
+
+def parse_time(time_str: str) -> datetime.time:
+    return datetime.strptime(time_str, "%H:%M").time()
 
 def get_current_subject(today_schedule: List[Dict[str, str]]) -> Optional[str]:
-    now = datetime.now().time()
+    now = get_now_ist().time()
     for period in today_schedule:
-        start = datetime.strptime(period["start_time"], "%H:%M").time()
-        end = datetime.strptime(period["end_time"], "%H:%M").time()
+        start = parse_time(period["start_time"])
+        end = parse_time(period["end_time"])
         if start <= now < end:
             return period["subject"]
     return None
 
 def get_next_subject(today_schedule: List[Dict[str, str]]) -> Optional[str]:
-    now = datetime.now().time()
+    now = get_now_ist().time()
     for period in today_schedule:
-        start = datetime.strptime(period["start_time"], "%H:%M").time()
+        start = parse_time(period["start_time"])
         if now < start:
             return period["subject"]
     return None
 
-# --- API Endpoints ---
+# --- Endpoints ---
+
 @app.get("/status", tags=["Utility"])
 def status():
     return {"status": "✅ Smart School API is live!"}
@@ -89,7 +99,7 @@ def get_current_period(class_name: str = Query(..., alias="class")):
         return {
             "class_name": class_name,
             "day": today,
-            "time": datetime.now().strftime("%H:%M"),
+            "time": get_now_ist().strftime("%H:%M"),
             "message": "📅 Today is Sunday! No school today."
         }
 
@@ -105,7 +115,7 @@ def get_current_period(class_name: str = Query(..., alias="class")):
         return {
             "class_name": class_name,
             "day": today,
-            "time": datetime.now().strftime("%H:%M"),
+            "time": get_now_ist().strftime("%H:%M"),
             "current_subject": current_subject,
             "message": f"🕒 Ongoing class: {current_subject}"
         }
@@ -115,14 +125,14 @@ def get_current_period(class_name: str = Query(..., alias="class")):
         return {
             "class_name": class_name,
             "day": today,
-            "time": datetime.now().strftime("%H:%M"),
+            "time": get_now_ist().strftime("%H:%M"),
             "message": f"⏭️ No current class. Next up: {next_subject}"
         }
 
     return {
         "class_name": class_name,
         "day": today,
-        "time": datetime.now().strftime("%H:%M"),
+        "time": get_now_ist().strftime("%H:%M"),
         "message": "🏁 School may be over for today!"
     }
 
