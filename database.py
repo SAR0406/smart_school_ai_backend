@@ -1,80 +1,93 @@
-# database.py
+import sqlite3
+from datetime import datetime
+import pytz
+from typing import Optional, List, Tuple
 
-import json
-import os
-from datetime import datetime, time
+DB_NAME = "timetable.db"
 
-# ------------------------
-# 📂 Load Timetable JSON
-# ------------------------
-
-BASE_DIR = os.path.dirname(__file__)
-TIMETABLE_PATH = os.path.join(BASE_DIR, "timetable.json")
-
-with open(TIMETABLE_PATH, "r", encoding="utf-8") as f:
-    raw_data = json.load(f)
-
-class_name = raw_data.get("class")
-daily_schedule = raw_data.get("daily_schedule", {})
-
-BREAK_SUBJECTS = {"Lunch Break", "Short Break"}
-
-
-# ------------------------
-# 🕒 Helper
-# ------------------------
-
-def parse_time(tstr):
-    return datetime.strptime(tstr, "%H:%M").time()
+# ========== DATABASE SETUP ==========
+def init_db():
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS timetable (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class TEXT NOT NULL,
+                day TEXT NOT NULL,
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                subject TEXT NOT NULL
+            )
+        """)
+        conn.commit()
 
 
-# ------------------------
-# 📚 Core Query Functions
-# ------------------------
+# ========== INSERT ==========
+def add_period(class_name: str, day: str, start_time: str, end_time: str, subject: str):
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO timetable (class, day, start_time, end_time, subject)
+            VALUES (?, ?, ?, ?, ?)
+        """, (class_name, day.capitalize(), start_time, end_time, subject))
+        conn.commit()
 
-def get_class_name():
-    return class_name
 
-def get_all_days():
-    return list(daily_schedule.keys())
+# ========== FETCH ==========
+def get_timetable(class_name: str, day: Optional[str] = None) -> List[Tuple]:
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        if day:
+            cursor.execute("""
+                SELECT day, start_time, end_time, subject
+                FROM timetable
+                WHERE class = ? AND day = ?
+                ORDER BY start_time
+            """, (class_name, day.capitalize()))
+        else:
+            cursor.execute("""
+                SELECT day, start_time, end_time, subject
+                FROM timetable
+                WHERE class = ?
+                ORDER BY day, start_time
+            """, (class_name,))
+        return cursor.fetchall()
 
-def get_day_timetable(day):
-    return daily_schedule.get(day, [])
 
-def get_day_teaching_periods(day):
-    return [
-        period for period in get_day_timetable(day)
-        if period["subject"] not in BREAK_SUBJECTS
-    ]
+# ========== CURRENT PERIOD ==========
+def get_current_period(class_name: str) -> str:
+    india_time = datetime.now(pytz.timezone("Asia/Kolkata"))
+    current_day = india_time.strftime("%A")
+    current_time = india_time.strftime("%H:%M")
 
-def get_first_teaching_period(day):
-    periods = get_day_teaching_periods(day)
-    return periods[0] if periods else None
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT subject FROM timetable
+            WHERE class = ? AND day = ? AND start_time <= ? AND end_time >= ?
+        """, (class_name, current_day, current_time, current_time))
 
-def get_last_teaching_period(day):
-    periods = get_day_teaching_periods(day)
-    return periods[-1] if periods else None
+        result = cursor.fetchone()
 
-def get_current_period(day, current_time: time):
-    for period in get_day_timetable(day):
-        start = parse_time(period["start_time"])
-        end = parse_time(period["end_time"])
-        if start <= current_time < end:
-            return period
-    return None
+    if result:
+        return f"🕒 Current period for class {class_name} is: {result[0]}"
+    elif current_day.lower() == "sunday":
+        return f"🎉 Sunday! No classes today."
+    else:
+        return f"📭 No ongoing class for {class_name} at {current_time}."
 
-def get_next_period(day, current_time: time):
-    for period in get_day_timetable(day):
-        start = parse_time(period["start_time"])
-        if start > current_time:
-            return period
-    return None
 
-def get_period_by_subject(day, subject):
-    for period in get_day_teaching_periods(day):
-        if period["subject"].lower() == subject.lower():
-            return period
-    return None
+# ========== DELETE ==========
+def delete_period_by_id(period_id: int) -> bool:
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM timetable WHERE id = ?", (period_id,))
+        return cursor.rowcount > 0
 
-def get_full_week_schedule():
-    return daily_schedule
+
+# ========== LIST CLASSES ==========
+def list_classes() -> List[str]:
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT class FROM timetable")
+        return [row[0] for row in cursor.fetchall()]
