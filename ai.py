@@ -191,3 +191,177 @@ async def generate_image(request: ImagePrompt):
     except Exception as e:
         logger.exception("Image Generation Error")
         raise HTTPException(status_code=500, detail=f"Image Generation Error: {str(e)}")
+
+
+# ============ ENDPOINT: DEFINE ============
+
+@router.post("/define", response_model=AIResponse)
+async def define_term(request: PromptRequest):
+    try:
+        messages = build_messages(
+            prompt=f"Define this clearly: {request.prompt}",
+            system_msg="You are an academic assistant. Define terms clearly and concisely."
+        )
+
+        response_text = ""
+        for chunk in client.chat.completions.create(
+            model=MODEL_ID,
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True
+        ):
+            content = chunk.choices[0].delta.content
+            if content:
+                response_text += content
+
+        return {"response": response_text.strip()}
+    except Exception as e:
+        logger.exception("Define Error")
+        raise HTTPException(status_code=500, detail=f"Define Error: {str(e)}")
+
+
+# ============ ENDPOINT: EXPLAIN ============
+
+@router.post("/explain", response_model=AIResponse)
+async def explain_concept(request: PromptRequest):
+    try:
+        messages = build_messages(
+            prompt=f"Explain this like I'm 12 years old: {request.prompt}",
+            system_msg="You are a teacher assistant. Explain complex topics in simple terms."
+        )
+
+        response_text = ""
+        for chunk in client.chat.completions.create(
+            model=MODEL_ID,
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True
+        ):
+            content = chunk.choices[0].delta.content
+            if content:
+                response_text += content
+
+        return {"response": response_text.strip()}
+    except Exception as e:
+        logger.exception("Explain Error")
+        raise HTTPException(status_code=500, detail=f"Explain Error: {str(e)}")
+
+
+# ============ ENDPOINT: QUIZ ============
+
+@router.post("/quiz", response_model=AIResponse)
+async def generate_quiz(request: PromptRequest):
+    try:
+        messages = build_messages(
+            prompt=f"Create a short 5-question quiz on the topic: {request.prompt}",
+            system_msg="You are a quiz generator bot for school subjects."
+        )
+
+        response_text = ""
+        for chunk in client.chat.completions.create(
+            model=MODEL_ID,
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True
+        ):
+            content = chunk.choices[0].delta.content
+            if content:
+                response_text += content
+
+        return {"response": response_text.strip()}
+    except Exception as e:
+        logger.exception("Quiz Generation Error")
+        raise HTTPException(status_code=500, detail=f"Quiz Generation Error: {str(e)}")
+
+
+# ============ ENDPOINT: SUMMARY ============
+
+@router.post("/summary", response_model=AIResponse)
+async def summarize_topic(request: PromptRequest):
+    try:
+        messages = build_messages(
+            prompt=f"Summarize this clearly and briefly: {request.prompt}",
+            system_msg="You are a summarization assistant. Keep it clear and short."
+        )
+
+        response_text = ""
+        for chunk in client.chat.completions.create(
+            model=MODEL_ID,
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True
+        ):
+            content = chunk.choices[0].delta.content
+            if content:
+                response_text += content
+
+        return {"response": response_text.strip()}
+    except Exception as e:
+        logger.exception("Summary Error")
+        raise HTTPException(status_code=500, detail=f"Summary Error: {str(e)}")
+
+
+# ============ ENDPOINT: FEEDBACK ============
+
+@router.post("/feedback", response_model=AIResponse)
+async def give_feedback(request: PromptRequest):
+    try:
+        messages = build_messages(
+            prompt=f"Give constructive feedback on this work: {request.prompt}",
+            system_msg="You are a school teacher assistant. Give fair and encouraging feedback."
+        )
+
+        response_text = ""
+        for chunk in client.chat.completions.create(
+            model=MODEL_ID,
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True
+        ):
+            content = chunk.choices[0].delta.content
+            if content:
+                response_text += content
+
+        return {"response": response_text.strip()}
+    except Exception as e:
+        logger.exception("Feedback Error")
+        raise HTTPException(status_code=500, detail=f"Feedback Error: {str(e)}")
+
+
+# ============ ENDPOINT: NOTES ============
+
+@router.post("/notes", response_model=AIResponse)
+async def generate_notes(request: PromptRequest):
+    try:
+        messages = build_messages(
+            prompt=f"Generate short study notes on: {request.prompt}",
+            system_msg="You are an educational note generator. Keep notes short and to the point."
+        )
+
+        response_text = ""
+        for chunk in client.chat.completions.create(
+            model=MODEL_ID,
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True
+        ):
+            content = chunk.choices[0].delta.content
+            if content:
+                response_text += content
+
+        return {"response": response_text.strip()}
+    except Exception as e:
+        logger.exception("Note Generation Error")
+        raise HTTPException(status_code=500, detail=f"Note Generation Error: {str(e)}")
