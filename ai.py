@@ -1,71 +1,56 @@
-from fastapi import FastAPI, HTTPException, Request, Depends
-from pydantic import BaseModel
-from typing import Optional, List, Dict
-from datetime import datetime
-import uvicorn
-import os
-import logging
-from openai import OpenAI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from uuid import uuid4
+from typing import List, Dict, Optional
+from openai import OpenAI
+from dotenv import load_dotenv
+from datetime import datetime
+import os
 
-# --- App Initialization ---
+# Load .env variables
+load_dotenv()
+
+# Init OpenAI Client for NVIDIA's API
+client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=os.getenv("NVIDIA_API_KEY")
+)
+
 app = FastAPI(
-    title="School GPT Assistant",
-    description="Smart school-focused assistant powered by NVIDIA/LLM APIs",
+    title="Smart School AI",
+    description="An intelligent assistant for school-related queries using NVIDIA's AI models.",
     version="1.0.0"
 )
 
-# --- Logging ---
-logging.basicConfig(level=logging.INFO)
-
-# --- CORS (if frontend exists) ---
+# Enable CORS (You can restrict allowed origins here)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
-# --- NVIDIA/OpenAI Client ---
-def get_openai_client():
-    return OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.getenv("NVIDIA_API_KEY")
-    )
-
 # --- Models ---
-class ChatInput(BaseModel):
-    user_id: str
+class ChatRequest(BaseModel):
+    user_id: Optional[str] = "anonymous"
     prompt: str
     temperature: Optional[float] = 0.7
-    top_p: Optional[float] = 0.95
-    max_tokens: Optional[int] = 1024
-    stream: Optional[bool] = False
 
 
-class SubjectInput(BaseModel):
-    subject: str
-    question: str
+class SimplePromptRequest(BaseModel):
+    term: Optional[str] = None
+    subject: Optional[str] = None
+    topic: Optional[str] = None
+    query: Optional[str] = None
+    question: Optional[str] = None
 
 
-class ExplainInput(BaseModel):
-    query: str
-
-
-class DefineInput(BaseModel):
-    term: str
-
-
-class FormulaInput(BaseModel):
-    subject: str
-    topic: str
-
-
-# --- In-Memory History ---
+# --- In-memory Storage ---
 chat_histories: Dict[str, List[Dict[str, str]]] = {}
-MAX_HISTORY = 10
 
 
+# --- Utility Functions ---
 def get_user_history(user_id: str) -> List[Dict[str, str]]:
     if user_id not in chat_histories:
         chat_histories[user_id] = []
@@ -75,117 +60,108 @@ def get_user_history(user_id: str) -> List[Dict[str, str]]:
 def add_to_history(user_id: str, role: str, content: str):
     history = get_user_history(user_id)
     history.append({"role": role, "content": content})
-    if len(history) > MAX_HISTORY:
+    if len(history) > 10:
         history.pop(0)
 
 
-# --- Core Chat Function ---
-def generate_completion(
-    client: OpenAI,
-    messages: List[Dict[str, str]],
-    temperature: float,
-    top_p: float,
-    max_tokens: int,
-    stream: bool = False
-):
+async def generate_response(messages, temperature=0.6, max_tokens=1024):
     try:
         completion = client.chat.completions.create(
             model="nvidia/llama-3.1-nemotron-ultra-253b-v1",
             messages=messages,
             temperature=temperature,
-            top_p=top_p,
+            top_p=0.95,
             max_tokens=max_tokens,
-            stream=stream
+            stream=False
         )
-        return completion
+        return completion.choices[0].message.content
+
     except Exception as e:
-        logging.error(f"Error during completion: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
 
 
 # --- Routes ---
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    if not req.prompt:
+        raise HTTPException(status_code=400, detail="Prompt is required.")
 
-@app.post("/chat", tags=["Chat"])
-def chat(input_data: ChatInput, client: OpenAI = Depends(get_openai_client)):
-    user_id = input_data.user_id
-    prompt = input_data.prompt
-    if not prompt:
-        raise HTTPException(status_code=400, detail="Missing prompt")
+    user_id = req.user_id or str(uuid4())
+    add_to_history(user_id, "user", req.prompt)
 
-    add_to_history(user_id, "user", prompt)
     history = get_user_history(user_id)
     messages = [{"role": "system", "content": "You are a helpful school assistant AI."}] + history
 
-    completion = generate_completion(
-        client=client,
-        messages=messages,
-        temperature=input_data.temperature,
-        top_p=input_data.top_p,
-        max_tokens=input_data.max_tokens,
-        stream=input_data.stream
-    )
-
-    reply = completion.choices[0].message.content
+    reply = await generate_response(messages, temperature=req.temperature, max_tokens=2048)
     add_to_history(user_id, "assistant", reply)
 
     return {
+        "user_id": user_id,
         "response": reply,
-        "history": history[-MAX_HISTORY:]
+        "history": history
     }
 
 
-@app.post("/define", tags=["Knowledge"])
-def define_term(input_data: DefineInput, client: OpenAI = Depends(get_openai_client)):
-    prompt = f"Define in simple words: {input_data.term}"
-    return single_turn_chat(client, "definitions", prompt)
-
-
-@app.post("/formula", tags=["Knowledge"])
-def formula_lookup(input_data: FormulaInput, client: OpenAI = Depends(get_openai_client)):
-    prompt = f"Give the most important formula related to {input_data.topic} in {input_data.subject}, explained clearly."
-    return single_turn_chat(client, "formulas", prompt)
-
-
-@app.post("/explain", tags=["Knowledge"])
-def explain_concept(input_data: ExplainInput, client: OpenAI = Depends(get_openai_client)):
-    prompt = f"Explain this clearly and in simple terms: {input_data.query}"
-    return single_turn_chat(client, "explanation", prompt)
-
-
-@app.post("/subject-expert", tags=["Subject Expert"])
-def subject_expert_answer(input_data: SubjectInput, client: OpenAI = Depends(get_openai_client)):
-    prompt = f"As a {input_data.subject} expert, answer the following question accurately: {input_data.question}"
-    return single_turn_chat(client, input_data.subject, prompt)
-
-
-# --- Helper Function ---
-def single_turn_chat(client: OpenAI, context: str, prompt: str):
+@app.post("/define")
+async def define(req: SimplePromptRequest):
+    if not req.term:
+        raise HTTPException(status_code=400, detail="Term is required.")
     messages = [
-        {"role": "system", "content": f"You are a helpful AI assistant specialized in {context}."},
-        {"role": "user", "content": prompt}
+        {"role": "system", "content": "You are a dictionary bot that explains terms simply."},
+        {"role": "user", "content": f"Define in simple words: {req.term}"}
     ]
-
-    completion = generate_completion(
-        client=client,
-        messages=messages,
-        temperature=0.6,
-        top_p=0.95,
-        max_tokens=1024
-    )
-
-    reply = completion.choices[0].message.content
+    reply = await generate_response(messages)
     return {"response": reply}
 
 
-# --- Startup Info ---
-@app.get("/", tags=["System"])
-def root():
+@app.post("/formula")
+async def formula(req: SimplePromptRequest):
+    if not req.subject or not req.topic:
+        raise HTTPException(status_code=400, detail="Subject and topic are required.")
+    messages = [
+        {"role": "system", "content": "You are a helpful formula assistant."},
+        {"role": "user", "content": f"Give the most important formula related to {req.topic} in {req.subject}, explained clearly."}
+    ]
+    reply = await generate_response(messages)
+    return {"response": reply}
+
+
+@app.post("/explain")
+async def explain(req: SimplePromptRequest):
+    if not req.query:
+        raise HTTPException(status_code=400, detail="Query is required.")
+    messages = [
+        {"role": "system", "content": "You are a teacher who explains things simply."},
+        {"role": "user", "content": f"Explain this clearly and in simple terms: {req.query}"}
+    ]
+    reply = await generate_response(messages)
+    return {"response": reply}
+
+
+@app.post("/subject-expert")
+async def subject_expert(req: SimplePromptRequest):
+    if not req.subject or not req.question:
+        raise HTTPException(status_code=400, detail="Subject and question are required.")
+    messages = [
+        {"role": "system", "content": f"You are an expert in {req.subject}."},
+        {"role": "user", "content": f"Answer this question accurately: {req.question}"}
+    ]
+    reply = await generate_response(messages)
+    return {"response": reply}
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+
+
+# --- Error Handlers ---
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
     return {
-        "message": "Welcome to School GPT AI Assistant 🚀",
-        "endpoints": ["/chat", "/define", "/formula", "/explain", "/subject-expert"]
+        "error": exc.detail,
+        "status_code": exc.status_code
     }
 
 
 # --- Run with: uvicorn ai:app --reload ---
-if __name__ == "__main__":
-    uvicorn.run("ai:app", host="0.0.0.0", port=5001, reload=True)
