@@ -91,9 +91,12 @@ def get_next_subject(today_schedule: List[Dict[str, str]]) -> Optional[str]:
 def status():
     return {"status": "✅ Smart School API is live!"}
 
-@app.get("/get_current_period", response_model=CurrentPeriodResponse, tags=["Timetable"])
-def get_current_period(class_name: str = Query(..., alias="class")):
-    today = get_today()
+@app.get("/get_day_schedule", response_model=TimetableResponse, tags=["Timetable"])
+def get_day_schedule(
+    class_name: str = Query(..., alias="class"),
+    day: Optional[str] = Query(None, description="Day of the week (e.g., Monday)")
+):
+    today = day or get_today()
 
     if today.lower() == "sunday":
         return {
