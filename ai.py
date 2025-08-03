@@ -5,14 +5,15 @@ from typing import List, Generator
 from dotenv import load_dotenv
 from openai import OpenAI
 import os
-import sqlite3
-from datetime import datetime
-import pytz
+import re
 
-# Load environment variables from .env
+# Local imports from database.py
+from database import get_current_period, get_today_timetable, get_week_timetable
+
+# Load environment variables
 load_dotenv()
 
-# Initialize NVIDIA-compatible OpenAI client
+# NVIDIA OpenAI client
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=os.getenv("NVIDIA_API_KEY")
@@ -43,47 +44,50 @@ class ImagePrompt(BaseModel):
 class ImageResponse(BaseModel):
     image_urls: List[str]
 
-# ============ UTILITIES ============
+# ============ INTENT DETECTION & ROUTING ============
 
-def get_current_period(class_name: str):
-    conn = sqlite3.connect("timetable.db")
-    cursor = conn.cursor()
+def extract_class_name(prompt: str) -> str | None:
+    match = re.search(r'class\s+(\d+[a-zA-Z]*)', prompt.lower())
+    return match.group(1) if match else None
 
-    # Get current time and day
-    india_time = datetime.now(pytz.timezone("Asia/Kolkata"))
-    current_day = india_time.strftime("%A")
-    current_time = india_time.strftime("%H:%M")
+def detect_timetable_intent(prompt: str) -> str | None:
+    prompt = prompt.lower()
+    if "current period" in prompt:
+        return "current"
+    elif "today's timetable" in prompt or "today timetable" in prompt:
+        return "today"
+    elif "full week" in prompt or "week timetable" in prompt:
+        return "week"
+    return None
 
-    cursor.execute("""
-        SELECT subject FROM timetable
-        WHERE class = ? AND day = ? AND start_time <= ? AND end_time >= ?
-    """, (class_name, current_day, current_time, current_time))
+def handle_timetable_logic(prompt: str) -> str | None:
+    class_name = extract_class_name(prompt)
+    if not class_name:
+        return "❌ Please specify the class name like 'class 8A' in your prompt."
 
-    result = cursor.fetchone()
-    conn.close()
+    intent = detect_timetable_intent(prompt)
 
-    if result:
-        return f"The current period for class {class_name} is: 📚 {result[0]}"
-    elif current_day.lower() == "sunday":
-        return f"📅 Today is Sunday! No school today."
-    else:
-        return f"🔍 No ongoing period found right now for class {class_name} (Time: {current_time})"
+    if intent == "current":
+        return get_current_period(class_name)
+    elif intent == "today":
+        return get_today_timetable(class_name)
+    elif intent == "week":
+        return get_week_timetable(class_name)
+    return None
 
-# ============ AI CHAT ENDPOINT ============
+# ============ SMART CHAT ENDPOINT ============
 
 @router.post("/chat", response_model=None)
 async def chat_with_nvidia(request: PromptRequest):
     try:
-        # Smart period integration
-        if "current period" in request.prompt.lower() and "class" in request.prompt.lower():
-            import re
-            match = re.search(r"class\s+([0-9]+[a-zA-Z]*)", request.prompt)
-            if match:
-                class_name = match.group(1)
-                return {"response": get_current_period(class_name)}
+        # 🧠 Check if the prompt matches timetable-related logic
+        timetable_response = handle_timetable_logic(request.prompt)
+        if timetable_response:
+            return {"response": timetable_response}
 
+        # Otherwise, use LLM to respond
         messages = [
-            {"role": "system", "content": "You are a smart assistant who also knows student timetables."},
+            {"role": "system", "content": "You are a helpful AI assistant trained to help with school questions and general tasks."},
             {"role": "user", "content": request.prompt}
         ]
 
@@ -98,27 +102,28 @@ async def chat_with_nvidia(request: PromptRequest):
                     stream=True,
                 )
                 for chunk in completion:
-                    if chunk.choices[0].delta.content is not None:
+                    if chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content
             except Exception as e:
                 yield f"[ERROR] {str(e)}"
 
         if request.stream:
             return StreamingResponse(stream_response(), media_type="text/plain")
-        else:
-            result = ""
-            for chunk in client.chat.completions.create(
-                model="nvidia/llama-3.1-nemotron-ultra-253b-v1",
-                messages=messages,
-                temperature=request.temperature,
-                top_p=request.top_p,
-                max_tokens=request.max_tokens,
-                stream=True,
-            ):
-                if chunk.choices[0].delta.content:
-                    result += chunk.choices[0].delta.content
 
-            return {"response": result.strip()}
+        # Non-streaming fallback
+        result = ""
+        for chunk in client.chat.completions.create(
+            model="nvidia/llama-3.1-nemotron-ultra-253b-v1",
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True,
+        ):
+            if chunk.choices[0].delta.content:
+                result += chunk.choices[0].delta.content
+
+        return {"response": result.strip()}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI Error: {str(e)}")
@@ -129,7 +134,7 @@ async def chat_with_nvidia(request: PromptRequest):
 async def generate_code(request: PromptRequest):
     try:
         messages = [
-            {"role": "system", "content": "You are a skilled programming assistant. Generate clean, efficient code."},
+            {"role": "system", "content": "You are an expert code generator. Write clean, working code."},
             {"role": "user", "content": request.prompt}
         ]
 
@@ -150,11 +155,12 @@ async def generate_code(request: PromptRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Code Gen Error: {str(e)}")
 
-# ============ IMAGE GENERATOR STUB ============
+# ============ IMAGE GENERATOR PLACEHOLDER ============
 
 @router.post("/image", response_model=ImageResponse)
 async def generate_image(request: ImagePrompt):
     try:
+        # Replace with real image generation API if needed
         return {"image_urls": ["https://example.com/image_placeholder.png"] * request.n}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image Generation Error: {str(e)}")
