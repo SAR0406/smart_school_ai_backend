@@ -200,24 +200,6 @@ def get_subjects():
     return {"subjects": sorted(subjects)}
 
 
-@app.get("/get_teacher_schedule", tags=["Timetable"])
-def get_teacher_schedule(teacher_name: str = Query(...)):
-    teacher_schedule = {}
-
-    for day, periods in timetable.get("daily_schedule", {}).items():
-        teacher_schedule[day] = []
-        for period in periods:
-            if period.get("teacher", "").lower() == teacher_name.lower():
-                teacher_schedule[day].append(period)
-
-    if all(len(p) == 0 for p in teacher_schedule.values()):
-        raise HTTPException(status_code=404, detail="No schedule found for this teacher.")
-
-    return {
-        "teacher_name": teacher_name,
-        "schedule": teacher_schedule
-    }
-
 
 @app.get("/search_periods_by_subject", tags=["Search"])
 def search_by_subject(subject: str = Query(...)):
