@@ -47,14 +47,6 @@ class PromptRequest(BaseModel):
 class AIResponse(BaseModel):
     response: str
 
-class ImagePrompt(BaseModel):
-    prompt: str
-    n: int = 1
-    size: str = "512x512"
-
-class ImageResponse(BaseModel):
-    image_urls: List[str]
-
 # ============ UTILITIES ============
 
 def get_current_period(class_name: str) -> str:
@@ -180,19 +172,6 @@ async def generate_code(request: PromptRequest):
         logger.exception("Code Generation Error")
         raise HTTPException(status_code=500, detail=f"Code Generation Error: {str(e)}")
 
-# ============ ENDPOINT: IMAGE GENERATION ============
-
-@router.post("/image", response_model=ImageResponse)
-async def generate_image(request: ImagePrompt):
-    try:
-        # Stub: Replace with real image generation integration later
-        placeholder_url = "https://placehold.co/512x512?text=AI+Image"
-        return {"image_urls": [placeholder_url for _ in range(request.n)]}
-    except Exception as e:
-        logger.exception("Image Generation Error")
-        raise HTTPException(status_code=500, detail=f"Image Generation Error: {str(e)}")
-
-
 # ============ ENDPOINT: DEFINE ============
 
 @router.post("/define", response_model=AIResponse)
@@ -221,6 +200,39 @@ async def define_term(request: PromptRequest):
         logger.exception("Define Error")
         raise HTTPException(status_code=500, detail=f"Define Error: {str(e)}")
 
+
+
+
+
+
+# ============ ENDPOINT: MY MODEL ============
+
+@router.post("/myai", response_model=AIResponse)
+async def define_term(request: PromptRequest):
+    try:
+        messages = build_messages(
+            prompt=f"Define this clearly: {request.prompt}",
+            system_msg="You are owned by Sarthak a 15 year old boy personal ai like jarvis . you are jarvis reply like you are jarvis or friday of iron man . reply with emoji and give your full inteliigence menation your user name who is sarthak and make him boss and reply him in boss and giver him selutation and respect act like jarvis and reply like jarvis and friday ."
+        )
+
+        response_text = ""
+        for chunk in client.chat.completions.create(
+            model=MODEL_ID,
+            messages=messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            stream=True
+        ):
+            content = chunk.choices[0].delta.content
+            if content:
+                response_text += content
+
+        return {"response": response_text.strip()}
+    except Exception as e:
+        logger.exception("Define Error")
+        raise HTTPException(status_code=500, detail=f"Define Error: {str(e)}")
+        
 
 # ============ ENDPOINT: EXPLAIN ============
 
