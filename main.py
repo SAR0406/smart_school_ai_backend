@@ -6,6 +6,8 @@ from typing import Optional, List, Dict, Any
 import json
 import os
 
+TIMEZONE = pytz.timezone("Asia/Kolkata")
+ 
 # === Import AI Routes ===
 from ai import router as ai_router
 
@@ -63,10 +65,11 @@ class FullWeekSchedule(BaseModel):
 
 # === Utilities ===
 def get_today() -> str:
-    return datetime.now().strftime("%A")
+    return datetime.now(TIMEZONE).strftime("%A")
 
 def get_current_time() -> time:
-    return datetime.now().time()
+    return datetime.now(TIMEZONE).time()
+
 
 def parse_time(time_str: str) -> time:
     return datetime.strptime(time_str, "%H:%M").time()
@@ -107,7 +110,8 @@ def status():
 @app.get("/get_current_period", response_model=CurrentPeriodResponse, tags=["Timetable"])
 def get_current_period(class_name: str = Query(..., alias="class")):
     today = get_today()
-    now_str = datetime.now().strftime("%H:%M")
+    now_str = datetime.now(TIMEZONE).strftime("%H:%M")
+
 
     if today == "Sunday":
         return {
