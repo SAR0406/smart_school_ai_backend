@@ -5,11 +5,13 @@ from datetime import datetime, time
 from typing import Optional, List, Dict, Any
 import json
 import os
+import pytz  # 🔁 Added for timezone support
 
-TIMEZONE = pytz.timezone("Asia/Kolkata")
- 
 # === Import AI Routes ===
 from ai import router as ai_router
+
+# === Timezone ===
+INDIA_TZ = pytz.timezone("Asia/Kolkata")
 
 app = FastAPI(
     title="📚 Smart School AI Assistant",
@@ -64,12 +66,17 @@ class FullWeekSchedule(BaseModel):
     week_schedule: Dict[str, List[PeriodInfo]]
 
 # === Utilities ===
+def get_india_datetime() -> datetime:
+    return datetime.now(INDIA_TZ)
+
 def get_today() -> str:
-    return datetime.now(TIMEZONE).strftime("%A")
+    return get_india_datetime().strftime("%A")
 
 def get_current_time() -> time:
-    return datetime.now(TIMEZONE).time()
+    return get_india_datetime().time()
 
+def get_current_time_str() -> str:
+    return get_india_datetime().strftime("%H:%M")
 
 def parse_time(time_str: str) -> time:
     return datetime.strptime(time_str, "%H:%M").time()
@@ -77,11 +84,9 @@ def parse_time(time_str: str) -> time:
 def get_class_schedule(class_name: str, day: str) -> List[Dict[str, str]]:
     if timetable.get("class", "").lower() != class_name.lower():
         raise HTTPException(status_code=404, detail="Class not found in timetable.")
-
     schedule = timetable["daily_schedule"].get(day)
     if not schedule:
         raise HTTPException(status_code=404, detail=f"No schedule found for {day}.")
-
     return schedule
 
 def get_current_subject(schedule: List[Dict[str, str]]) -> Optional[str]:
@@ -110,8 +115,7 @@ def status():
 @app.get("/get_current_period", response_model=CurrentPeriodResponse, tags=["Timetable"])
 def get_current_period(class_name: str = Query(..., alias="class")):
     today = get_today()
-    now_str = datetime.now(TIMEZONE).strftime("%H:%M")
-
+    now_str = get_current_time_str()
 
     if today == "Sunday":
         return {
@@ -144,14 +148,12 @@ def get_current_period(class_name: str = Query(..., alias="class")):
 @app.get("/get_day_schedule", response_model=TimetableResponse, tags=["Timetable"])
 def get_today_schedule(class_name: str = Query(..., alias="class")):
     today = get_today()
-
     if today == "Sunday":
         return {
             "class_name": class_name,
             "day": today,
             "timetable": [{"subject": "Holiday", "start_time": "-", "end_time": "-"}]
         }
-
     schedule = get_class_schedule(class_name, today)
     return {
         "class_name": class_name,
@@ -167,7 +169,6 @@ def get_schedule_by_day(day: str, class_name: str = Query(..., alias="class")):
             "day": "Sunday",
             "timetable": [{"subject": "Holiday", "start_time": "-", "end_time": "-"}]
         }
-
     schedule = get_class_schedule(class_name, day.capitalize())
     return {
         "class_name": class_name,
@@ -179,10 +180,8 @@ def get_schedule_by_day(day: str, class_name: str = Query(..., alias="class")):
 def get_full_week(class_name: str = Query(..., alias="class")):
     if timetable.get("class", "").lower() != class_name.lower():
         raise HTTPException(status_code=404, detail="Class not found.")
-
     full_week = timetable["daily_schedule"].copy()
     full_week["Sunday"] = [{"subject": "Holiday", "start_time": "-", "end_time": "-"}]
-
     return {
         "class_name": class_name,
         "week_schedule": full_week
@@ -190,10 +189,7 @@ def get_full_week(class_name: str = Query(..., alias="class")):
 
 @app.get("/get_all_classes", response_model=ClassList, tags=["Timetable"])
 def get_all_classes():
-    # In the future: load from multiple class JSONs or DB
     return {"classes": [timetable.get("class", "Unknown")]}
-
-# --- Extended Features ---
 
 @app.get("/get_subjects", tags=["Timetable"])
 def get_subjects():
@@ -202,8 +198,6 @@ def get_subjects():
         for period in periods:
             subjects.add(period["subject"])
     return {"subjects": sorted(subjects)}
-
-
 
 @app.get("/search_periods_by_subject", tags=["Search"])
 def search_by_subject(subject: str = Query(...)):
@@ -217,24 +211,18 @@ def search_by_subject(subject: str = Query(...)):
                     "start_time": period["start_time"],
                     "end_time": period["end_time"]
                 })
-
     if not results:
         raise HTTPException(status_code=404, detail="No periods found for this subject.")
-    
     return {"subject": subject, "results": results}
-
 
 @app.get("/is_class_over_today", tags=["Timetable"])
 def is_class_over_today(class_name: str = Query(..., alias="class")):
     today = get_today()
     now = get_current_time()
-
     if today == "Sunday":
         return {"class_name": class_name, "status": "Holiday"}
-
     schedule = get_class_schedule(class_name, today)
     last_end = parse_time(schedule[-1]["end_time"])
-
     return {
         "class_name": class_name,
         "current_time": now.strftime("%H:%M"),
@@ -242,17 +230,13 @@ def is_class_over_today(class_name: str = Query(..., alias="class")):
         "is_over": now > last_end
     }
 
-
 @app.get("/get_next_class_time", tags=["Timetable"])
 def get_next_class_time(class_name: str = Query(..., alias="class")):
     today = get_today()
     now = get_current_time()
-
     if today == "Sunday":
         return {"class_name": class_name, "next_class": None, "message": "📅 It's Sunday!"}
-
     schedule = get_class_schedule(class_name, today)
-
     for period in schedule:
         start = parse_time(period["start_time"])
         if now < start:
@@ -261,5 +245,4 @@ def get_next_class_time(class_name: str = Query(..., alias="class")):
                 "next_subject": period["subject"],
                 "start_time": start.strftime("%H:%M")
             }
-
     return {"class_name": class_name, "message": "✅ All classes for today are done."}
