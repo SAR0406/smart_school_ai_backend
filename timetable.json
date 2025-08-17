@@ -1,300 +1,170 @@
 {
-  "class": "10A",
-  "start_time": "09:20",
-  "end_time": "14:30",
-  "period_duration_minutes": 40,
-  "lunch_break": {
-    "start": "11:20",
-    "end": "11:40",
-    "duration_minutes": 20
-  },
-  "short_break": {
-    "start": "13:00",
-    "end": "13:10",
-    "duration_minutes": 10
-  },
-  "daily_schedule": {
-    "Monday": [
-      {
-        "subject": "Hindi",
-        "start_time": "09:20",
-        "end_time": "10:00"
+  "classes": {
+    "10A": {
+      "start_time": "09:20",
+      "end_time": "14:30",
+      "period_duration_minutes": 40,
+      "lunch_break": {
+        "start": "11:20",
+        "end": "11:40",
+        "duration_minutes": 20
       },
-      {
-        "subject": "Physics",
-        "start_time": "10:00",
-        "end_time": "10:40"
+      "short_break": {
+        "start": "13:00",
+        "end": "13:10",
+        "duration_minutes": 10
       },
-      {
-        "subject": "SST",
-        "start_time": "10:40",
-        "end_time": "11:20"
-      },
-      {
-        "subject": "Lunch Break",
-        "start_time": "11:20",
-        "end_time": "11:40"
-      },
-      {
-        "subject": "Math",
-        "start_time": "11:40",
-        "end_time": "12:20"
-      },
-      {
-        "subject": "English",
-        "start_time": "12:20",
-        "end_time": "13:00"
-      },
-      {
-        "subject": "Short Break",
-        "start_time": "13:00",
-        "end_time": "13:10"
-      },
-      {
-        "subject": "FMM",
-        "start_time": "13:10",
-        "end_time": "13:50"
-      },
-      {
-        "subject": "Chemistry",
-        "start_time": "13:50",
-        "end_time": "14:30"
+      "daily_schedule": {
+        "Monday": [
+          { "subject": "Hindi", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Physics", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "SST", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Math", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "English", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "FMM", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Chemistry", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Tuesday": [
+          { "subject": "Hindi", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Physics", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "SST", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Math", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "English", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "FMM", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Chemistry", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Wednesday": [
+          { "subject": "Hindi", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Physics", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "SST", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Math", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "English", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "FMM", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Chemistry", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Thursday": [
+          { "subject": "Hindi", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Biology", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "SST", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Math", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "English", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "SST", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Math", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Friday": [
+          { "subject": "Hindi", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Biology", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "SST", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Math", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "English", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "ATL", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Game", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Saturday": [
+          { "subject": "Hindi", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Biology", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "SST", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Math", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "English", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "Library", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Math", "start_time": "13:50", "end_time": "14:30" }
+        ]
       }
-    ],
-    "Tuesday": [
-      {
-        "subject": "Hindi",
-        "start_time": "09:20",
-        "end_time": "10:00"
+    },
+    "10B": {
+      "start_time": "09:20",
+      "end_time": "14:30",
+      "period_duration_minutes": 40,
+      "lunch_break": {
+        "start": "11:20",
+        "end": "11:40",
+        "duration_minutes": 20
       },
-      {
-        "subject": "Physics",
-        "start_time": "10:00",
-        "end_time": "10:40"
+      "short_break": {
+        "start": "13:00",
+        "end_time": "13:10",
+        "duration_minutes": 10
       },
-      {
-        "subject": "SST",
-        "start_time": "10:40",
-        "end_time": "11:20"
-      },
-      {
-        "subject": "Lunch Break",
-        "start_time": "11:20",
-        "end_time": "11:40"
-      },
-      {
-        "subject": "Math",
-        "start_time": "11:40",
-        "end_time": "12:20"
-      },
-      {
-        "subject": "English",
-        "start_time": "12:20",
-        "end_time": "13:00"
-      },
-      {
-        "subject": "Short Break",
-        "start_time": "13:00",
-        "end_time": "13:10"
-      },
-      {
-        "subject": "FMM",
-        "start_time": "13:10",
-        "end_time": "13:50"
-      },
-      {
-        "subject": "Chemistry",
-        "start_time": "13:50",
-        "end_time": "14:30"
+      "daily_schedule": {
+        "Monday": [
+          { "subject": "English", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Hindi", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "Biology", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Maths", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "SST", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "FMM/IT", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Maths", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Tuesday": [
+          { "subject": "English", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Hindi", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "Biology", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Maths", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "SST", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "FMM/IT", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Maths", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Wednesday": [
+          { "subject": "English", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Hindi", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "Biology", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Maths", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "SST", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "FMM/IT", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Library", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Thursday": [
+          { "subject": "English", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Hindi", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "Physics", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Maths", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "SST", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "Games", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Chemistry", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Friday": [
+          { "subject": "English", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Hindi", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "Physics", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Maths", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "SST", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "SST", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Chemistry", "start_time": "13:50", "end_time": "14:30" }
+        ],
+        "Saturday": [
+          { "subject": "English", "start_time": "09:20", "end_time": "10:00" },
+          { "subject": "Hindi", "start_time": "10:00", "end_time": "10:40" },
+          { "subject": "Biology", "start_time": "10:40", "end_time": "11:20" },
+          { "subject": "Lunch Break", "start_time": "11:20", "end_time": "11:40" },
+          { "subject": "Maths", "start_time": "11:40", "end_time": "12:20" },
+          { "subject": "SST", "start_time": "12:20", "end_time": "13:00" },
+          { "subject": "Short Break", "start_time": "13:00", "end_time": "13:10" },
+          { "subject": "ATL", "start_time": "13:10", "end_time": "13:50" },
+          { "subject": "Chemistry", "start_time": "13:50", "end_time": "14:30" }
+        ]
       }
-    ],
-    "Wednesday": [
-      {
-        "subject": "Hindi",
-        "start_time": "09:20",
-        "end_time": "10:00"
-      },
-      {
-        "subject": "Physics",
-        "start_time": "10:00",
-        "end_time": "10:40"
-      },
-      {
-        "subject": "SST",
-        "start_time": "10:40",
-        "end_time": "11:20"
-      },
-      {
-        "subject": "Lunch Break",
-        "start_time": "11:20",
-        "end_time": "11:40"
-      },
-      {
-        "subject": "Math",
-        "start_time": "11:40",
-        "end_time": "12:20"
-      },
-      {
-        "subject": "English",
-        "start_time": "12:20",
-        "end_time": "13:00"
-      },
-      {
-        "subject": "Short Break",
-        "start_time": "13:00",
-        "end_time": "13:10"
-      },
-      {
-        "subject": "FMM",
-        "start_time": "13:10",
-        "end_time": "13:50"
-      },
-      {
-        "subject": "Chemistry",
-        "start_time": "13:50",
-        "end_time": "14:30"
-      }
-    ],
-    "Thursday": [
-      {
-        "subject": "Hindi",
-        "start_time": "09:20",
-        "end_time": "10:00"
-      },
-      {
-        "subject": "Biology",
-        "start_time": "10:00",
-        "end_time": "10:40"
-      },
-      {
-        "subject": "SST",
-        "start_time": "10:40",
-        "end_time": "11:20"
-      },
-      {
-        "subject": "Lunch Break",
-        "start_time": "11:20",
-        "end_time": "11:40"
-      },
-      {
-        "subject": "Math",
-        "start_time": "11:40",
-        "end_time": "12:20"
-      },
-      {
-        "subject": "English",
-        "start_time": "12:20",
-        "end_time": "13:00"
-      },
-      {
-        "subject": "Short Break",
-        "start_time": "13:00",
-        "end_time": "13:10"
-      },
-      {
-        "subject": "SST",
-        "start_time": "13:10",
-        "end_time": "13:50"
-      },
-      {
-        "subject": "Math",
-        "start_time": "13:50",
-        "end_time": "14:30"
-      }
-    ],
-    "Friday": [
-      {
-        "subject": "Hindi",
-        "start_time": "09:20",
-        "end_time": "10:00"
-      },
-      {
-        "subject": "Biology",
-        "start_time": "10:00",
-        "end_time": "10:40"
-      },
-      {
-        "subject": "SST",
-        "start_time": "10:40",
-        "end_time": "11:20"
-      },
-      {
-        "subject": "Lunch Break",
-        "start_time": "11:20",
-        "end_time": "11:40"
-      },
-      {
-        "subject": "Math",
-        "start_time": "11:40",
-        "end_time": "12:20"
-      },
-      {
-        "subject": "English",
-        "start_time": "12:20",
-        "end_time": "13:00"
-      },
-      {
-        "subject": "Short Break",
-        "start_time": "13:00",
-        "end_time": "13:10"
-      },
-      {
-        "subject": "ATL",
-        "start_time": "13:10",
-        "end_time": "13:50"
-      },
-      {
-        "subject": "Game",
-        "start_time": "13:50",
-        "end_time": "14:30"
-      }
-    ],
-    "Saturday": [
-      {
-        "subject": "Hindi",
-        "start_time": "09:20",
-        "end_time": "10:00"
-      },
-      {
-        "subject": "Biology",
-        "start_time": "10:00",
-        "end_time": "10:40"
-      },
-      {
-        "subject": "SST",
-        "start_time": "10:40",
-        "end_time": "11:20"
-      },
-      {
-        "subject": "Lunch Break",
-        "start_time": "11:20",
-        "end_time": "11:40"
-      },
-      {
-        "subject": "Math",
-        "start_time": "11:40",
-        "end_time": "12:20"
-      },
-      {
-        "subject": "English",
-        "start_time": "12:20",
-        "end_time": "13:00"
-      },
-      {
-        "subject": "Short Break",
-        "start_time": "13:00",
-        "end_time": "13:10"
-      },
-      {
-        "subject": "Library",
-        "start_time": "13:10",
-        "end_time": "13:50"
-      },
-      {
-        "subject": "Math",
-        "start_time": "13:50",
-        "end_time": "14:30"
-      }
-    ]
+    }
   }
 }
